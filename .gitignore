@@ -30,8 +30,10 @@ ENV/
 # 使用者產生的檔案
 ad_replacer_config.json
 config.py
-screenshots/
-replace_image/
+screenshots/*
+!screenshots/.gitkeep
+replace_image/*
+!replace_image/.gitkeep
 logs/
 
 # 臨時檔案
