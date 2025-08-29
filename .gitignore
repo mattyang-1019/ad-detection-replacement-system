@@ -1,4 +1,32 @@
-# Python
+# 測試和個人設定檔案
+ad_replacer_config.json
+config.py
+
+# 上傳的圖片檔案
+replace_image/*.jpg
+replace_image/*.jpeg
+replace_image/*.png
+replace_image/*.gif
+replace_image/*.bmp
+replace_image/*.webp
+
+# 但保留記錄檔案結構
+!replace_image/
+!replace_image/.gitkeep
+!replace_image/image_records.json
+
+# 截圖結果
+screenshots/
+!screenshots/
+!screenshots/.gitkeep
+
+# 日誌檔案
+logs/
+*.log
+!logs/
+!logs/.gitkeep
+
+# Python 相關
 __pycache__/
 *.py[cod]
 *$py.class
@@ -19,47 +47,38 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
 # 虛擬環境
-image_upload_env/
 venv/
 env/
 ENV/
+image_upload_env/
 
-# 使用者產生的檔案
-ad_replacer_config.json
-config.py
-screenshots/*
-!screenshots/.gitkeep
-replace_image/*
-!replace_image/.gitkeep
-logs/
-
-# 臨時檔案
-*.tmp
-*.temp
-*.bak
+# IDE 設定
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
-
-# IDE
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
 
 # 系統檔案
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# 瀏覽器相關
-chromedriver.exe
-geckodriver.exe
-*.log
+# 環境變數
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# 測試檔案
-test_*.py
-*_test.py
+# 臨時檔案
+*.tmp
+*.temp
+*.bak
+
+# 資料庫檔案
+*.db
+*.sqlite
+*.sqlite3
