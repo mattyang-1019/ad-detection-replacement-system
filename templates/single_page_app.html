@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圖片上傳管理系統</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+        }
+        
+        .upload-area {
+            border: 3px dashed #dee2e6;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #0d6efd;
+            background: linear-gradient(135deg, #e7f3ff 0%, #cce7ff 100%);
+            transform: translateY(-2px);
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover .upload-icon {
+            color: #0d6efd;
+        }
+        
+        .image-preview {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .info-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .image-card {
+            transition: transform 0.2s;
+            position: relative;
+        }
+        
+        .image-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .image-thumbnail {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .info-badge {
+            font-size: 0.8rem;
+        }
+        
+        .conflict-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+        
+        .size-filter {
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 2px;
+        }
+        
+        .size-filter:hover {
+            background-color: #e9ecef !important;
+        }
+        
+        .size-filter.active {
+            background-color: #0d6efd !important;
+            color: white !important;
+        }
+        
+        .tab-content {
+            min-height: 600px;
+        }
+        
+        .nav-tabs .nav-link {
+            border-radius: 10px 10px 0 0;
+            margin-right: 5px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+            color: white;
+            border-color: #0d6efd;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bulk-toolbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(33, 37, 41, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1050;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-images"></i> 圖片上傳管理系統
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text">
+                    <i class="fas fa-database"></i> 
+                    總計 <span id="navTotalImages">0</span> 張圖片
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 標籤頁導航 -->
+        <ul class="nav nav-tabs mb-4" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-pane" type="button" role="tab">
+                    <i class="fas fa-cloud-upload-alt"></i> 上傳圖片
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery-pane" type="button" role="tab">
+                    <i class="fas fa-images"></i> 圖片庫
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manage-pane" type="button" role="tab">
+                    <i class="fas fa-cogs"></i> 管理工具
+                </button>
+            </li>
+        </ul>
+
+        <!-- 標籤頁內容 -->
+        <div class="tab-content" id="mainTabContent">
+            
+            <!-- 上傳標籤頁 -->
+            <div class="tab-pane fade show active" id="upload-pane" role="tabpanel">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card shadow fade-in">
+                            <div class="card-header bg-success text-white">
+                                <h4 class="mb-0"><i class="fas fa-cloud-upload-alt"></i> 圖片上傳</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="upload-area" id="uploadArea">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <h5>拖拽圖片到這裡或點擊選擇</h5>
+                                    <p class="text-muted">支援 PNG, JPG, JPEG, GIF, BMP, WebP 格式</p>
+                                    <p class="text-muted">最大檔案大小: 10MB</p>
+                                    <p class="text-success"><strong>✨ 支援多張圖片同時上傳！</strong></p>
+                                    <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
+                                </div>
+
+                                <div class="progress-container" id="progressContainer">
+                                    <div class="progress">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+
+                                <div id="uploadResult" class="mt-4"></div>
+                            </div>
+                        </div>
+
+                        <!-- 統計資訊說明 -->
+                        <div class="alert alert-info mt-4">
+                            <h6><i class="fas fa-info-circle"></i> 統計資料說明</h6>
+                            <p class="mb-0">這些統計資料幫助你：</p>
+                            <ul class="mb-0 mt-2">
+                                <li><strong>總圖片數</strong> - 快速了解圖片庫的規模</li>
+                                <li><strong>總檔案大小</strong> - 監控儲存空間的使用情況</li>
+                                <li><strong>最常用尺寸</strong> - 了解主要的圖片規格，便於統一管理</li>
+                            </ul>
+                        </div>
+
+                        <!-- 統計資訊 -->
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <i class="fas fa-images fa-2x text-primary mb-2"></i>
+                                    <h5 id="totalImages">0</h5>
+                                    <p class="text-muted">總圖片數</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <i class="fas fa-hdd fa-2x text-info mb-2"></i>
+                                    <h5 id="totalSize">0 KB</h5>
+                                    <p class="text-muted">總檔案大小</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <i class="fas fa-expand-arrows-alt fa-2x text-warning mb-2"></i>
+                                    <h5 id="commonSize">-</h5>
+                                    <p class="text-muted">最常用尺寸</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 圖片庫標籤頁 -->
+            <div class="tab-pane fade" id="gallery-pane" role="tabpanel">
+                <div class="fade-in">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3><i class="fas fa-images"></i> 圖片庫</h3>
+                        <div>
+                            <button class="btn btn-outline-primary me-2" onclick="refreshGallery()">
+                                <i class="fas fa-sync-alt"></i> 重新整理
+                            </button>
+                            <span class="badge bg-primary fs-6">共 <span id="galleryCount">0</span> 張圖片</span>
+                        </div>
+                    </div>
+
+                    <div class="row" id="galleryGrid">
+                        <!-- 圖片將由 JavaScript 動態載入 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 管理工具標籤頁 -->
+            <div class="tab-pane fade" id="manage-pane" role="tabpanel">
+                <div class="fade-in">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3><i class="fas fa-cogs"></i> 管理工具</h3>
+                        <div>
+                            <button class="btn btn-outline-info me-2" onclick="syncFiles()">
+                                <i class="fas fa-sync"></i> 同步檔案
+                            </button>
+                            <button class="btn btn-outline-warning me-2" onclick="findDuplicates()">
+                                <i class="fas fa-search"></i> 找出重複尺寸
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="toggleBulkMode()">
+                                <i class="fas fa-trash-alt"></i> 批量管理
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 尺寸篩選器 -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-filter"></i> 按尺寸篩選</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="sizeFilters" class="d-flex flex-wrap">
+                                <span class="badge bg-secondary size-filter active" data-size="all" onclick="filterBySize('all')">
+                                    全部 (<span id="manageTotal">0</span>)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 重複尺寸警告 -->
+                    <div id="duplicateAlert" class="alert alert-warning d-none">
+                        <h6><i class="fas fa-exclamation-triangle"></i> 發現重複尺寸的圖片</h6>
+                        <div id="duplicateList"></div>
+                    </div>
+
+                    <!-- 管理網格 -->
+                    <div class="row" id="manageGrid">
+                        <!-- 圖片將由 JavaScript 動態載入 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量操作工具列 -->
+    <div id="bulkToolbar" class="bulk-toolbar text-white p-3 d-none">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>已選擇 <span id="selectedCount">0</span> 張圖片</span>
+                <div>
+                    <button class="btn btn-outline-light me-2" onclick="selectAll()">全選</button>
+                    <button class="btn btn-outline-light me-2" onclick="clearSelection()">清除選擇</button>
+                    <button class="btn btn-danger" onclick="deleteSelected()">刪除選中</button>
+                    <button class="btn btn-secondary" onclick="toggleBulkMode()">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 圖片資訊模態框 -->
+    <div class="modal fade" id="imageInfoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">圖片詳細資訊</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="imageInfoContent">
+                    <!-- 內容將由 JavaScript 填入 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全域變數
+        let allImages = [];
+        let selectedImages = new Set();
+        let currentFilter = 'all';
+        let bulkMode = false;
+
+        // 頁面載入時執行
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            setupEventListeners();
+        });
+
+        // 初始化應用程式
+        function initializeApp() {
+            loadStats();
+            loadImages();
+        }
+
+        // 設定事件監聽器
+        function setupEventListeners() {
+            // 上傳區域事件
+            const uploadArea = document.getElementById('uploadArea');
+            const imageInput = document.getElementById('imageInput');
+
+            uploadArea.addEventListener('click', () => imageInput.click());
+            imageInput.addEventListener('change', handleFileSelect);
+
+            // 拖拽事件
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            uploadArea.addEventListener('drop', handleDrop);
+
+            // 標籤頁切換事件
+            document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+                tab.addEventListener('shown.bs.tab', handleTabSwitch);
+            });
+        }
+
+        // 處理標籤頁切換
+        function handleTabSwitch(event) {
+            const targetId = event.target.getAttribute('data-bs-target');
+            
+            if (targetId === '#gallery-pane') {
+                refreshGallery();
+            } else if (targetId === '#manage-pane') {
+                // 重置篩選器為「全部」
+                currentFilter = 'all';
+                refreshManage();
+            }
+        }
+
+        // 拖拽處理
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length > 0) {
+                handleFiles(files);
+            }
+        }
+
+        // 檔案選擇處理
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                handleFiles(files);
+            }
+        }
+
+        // 處理檔案
+        function handleFiles(files) {
+            const validFiles = [];
+            const errors = [];
+
+            files.forEach(file => {
+                if (!file.type.startsWith('image/')) {
+                    errors.push(`${file.name}: 不是圖片檔案`);
+                    return;
+                }
+
+                if (file.size > 10 * 1024 * 1024) {
+                    errors.push(`${file.name}: 檔案大小超過 10MB`);
+                    return;
+                }
+
+                validFiles.push(file);
+            });
+
+            if (errors.length > 0) {
+                showAlert('部分檔案有問題：<br>' + errors.join('<br>'), 'warning');
+            }
+
+            if (validFiles.length > 0) {
+                uploadFiles(validFiles);
+            }
+        }
+
+        // 上傳檔案
+        function uploadFiles(files) {
+            const formData = new FormData();
+            files.forEach(file => formData.append('image', file));
+
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = progressContainer.querySelector('.progress-bar');
+            const uploadArea = document.getElementById('uploadArea');
+
+            // 顯示進度
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+
+            // 更新上傳區域
+            uploadArea.innerHTML = `
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h5>正在上傳 ${files.length} 張圖片...</h5>
+                <p class="text-muted">請稍候，不要關閉頁面</p>
+            `;
+
+            // 模擬進度
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = progress + '%';
+            }, 200);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    resetUploadArea();
+                    
+                    if (data.success) {
+                        showBatchResult(data);
+                        // 重新載入統計和圖片資料
+                        Promise.all([loadStats(), loadImages()]).then(() => {
+                            // 如果當前在管理標籤頁，更新重複檢測
+                            const activeTab = document.querySelector('.nav-link.active');
+                            if (activeTab && activeTab.id === 'manage-tab') {
+                                findDuplicates();
+                            }
+                        });
+                    } else {
+                        showAlert(data.message, 'danger');
+                    }
+                }, 500);
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                progressContainer.style.display = 'none';
+                resetUploadArea();
+                showAlert('上傳失敗：' + error.message, 'danger');
+            });
+        }
+
+        // 重置上傳區域
+        function resetUploadArea() {
+            document.getElementById('uploadArea').innerHTML = `
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h5>拖拽圖片到這裡或點擊選擇</h5>
+                <p class="text-muted">支援 PNG, JPG, JPEG, GIF, BMP, WebP 格式</p>
+                <p class="text-muted">最大檔案大小: 10MB</p>
+                <p class="text-success"><strong>✨ 支援多張圖片同時上傳！</strong></p>
+            `;
+        }
+
+        // 顯示批量上傳結果
+        function showBatchResult(data) {
+            const result = document.getElementById('uploadResult');
+            let alertClass = data.success_count > 0 ? 'success' : 'danger';
+            let alertIcon = data.success_count > 0 ? 'check-circle' : 'exclamation-circle';
+            
+            let resultHtml = `
+                <div class="alert alert-${alertClass}">
+                    <h5><i class="fas fa-${alertIcon}"></i> ${data.message}</h5>
+                    <p class="mb-0">總共 ${data.total_files} 個檔案，成功 ${data.success_count} 個，失敗 ${data.error_count} 個</p>
+                </div>
+            `;
+
+            // 處理衝突
+            const conflictResults = data.results.filter(r => r.success && r.conflict);
+            if (conflictResults.length > 0) {
+                resultHtml += generateConflictHtml(conflictResults);
+            }
+
+            // 顯示成功的圖片
+            const successResults = data.results.filter(r => r.success);
+            if (successResults.length > 0) {
+                resultHtml += generateSuccessHtml(successResults);
+            }
+
+            // 顯示失敗的檔案
+            const errorResults = data.results.filter(r => !r.success);
+            if (errorResults.length > 0) {
+                resultHtml += generateErrorHtml(errorResults);
+            }
+
+            result.innerHTML = resultHtml;
+        }
+
+        // 生成衝突 HTML
+        function generateConflictHtml(conflictResults) {
+            let html = `
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> 發現尺寸衝突 (${conflictResults.length})</h6>
+                    <p class="mb-2">以下圖片與現有圖片尺寸相同，請選擇保留哪一張：</p>
+            `;
+            
+            conflictResults.forEach(item => {
+                const conflict = item.conflict;
+                html += `
+                    <div class="border rounded p-3 mb-2">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>現有圖片</h6>
+                                <img src="/replace_image/${conflict.existing_filename}" class="img-thumbnail" style="max-height: 100px;">
+                                <p class="small mt-1">${conflict.existing_filename}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>新上傳圖片</h6>
+                                <img src="/replace_image/${conflict.new_filename}" class="img-thumbnail" style="max-height: 100px;">
+                                <p class="small mt-1">${item.original_name}</p>
+                            </div>
+                        </div>
+                        <div class="text-center mt-2">
+                            <button class="btn btn-sm btn-outline-primary me-2" 
+                                    onclick="resolveConflict('keep_existing', '${conflict.existing_filename}', '${conflict.new_filename}')">
+                                保留現有圖片
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="resolveConflict('keep_new', '${conflict.existing_filename}', '${conflict.new_filename}')">
+                                保留新圖片
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            return html + '</div>';
+        }
+
+        // 生成成功結果 HTML
+        function generateSuccessHtml(successResults) {
+            let html = `
+                <div class="info-card">
+                    <h6><i class="fas fa-images"></i> 成功上傳的圖片 (${successResults.length})</h6>
+                    <div class="row">
+            `;
+            
+            successResults.slice(0, 6).forEach(item => {
+                const info = item.image_info;
+                const conflictBadge = item.conflict ? '<span class="badge bg-warning">衝突</span>' : '';
+                html += `
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <img src="/replace_image/${item.filename}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                            <div class="card-body p-2">
+                                <h6 class="card-title text-truncate">${item.original_name} ${conflictBadge}</h6>
+                                <small class="text-muted">${info.width}×${info.height} | ${formatFileSize(info.file_size)}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (successResults.length > 6) {
+                html += `<div class="col-12"><p class="text-muted text-center">還有 ${successResults.length - 6} 張圖片...</p></div>`;
+            }
+            
+            return html + '</div></div>';
+        }
+
+        // 生成錯誤結果 HTML
+        function generateErrorHtml(errorResults) {
+            let html = `
+                <div class="info-card">
+                    <h6><i class="fas fa-exclamation-triangle text-warning"></i> 失敗的檔案 (${errorResults.length})</h6>
+                    <ul class="list-unstyled">
+            `;
+            
+            errorResults.forEach(item => {
+                html += `<li><strong>${item.filename}:</strong> ${item.message}</li>`;
+            });
+            
+            return html + '</ul></div>';
+        }
+
+        // 載入統計資料
+        function loadStats() {
+            return fetch('/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('totalImages').textContent = data.total_images;
+                document.getElementById('navTotalImages').textContent = data.total_images;
+                document.getElementById('totalSize').textContent = formatFileSize(data.total_size);
+                
+                const sizes = Object.entries(data.size_distribution);
+                if (sizes.length > 0) {
+                    sizes.sort((a, b) => b[1] - a[1]);
+                    const mostCommon = sizes[0];
+                    const commonSizeElement = document.getElementById('commonSize');
+                    
+                    if (mostCommon[1] > 1) {
+                        // 如果最常見的尺寸有多張圖片，顯示尺寸和數量
+                        commonSizeElement.textContent = `${mostCommon[0]} (${mostCommon[1]}張)`;
+                    } else if (sizes.length === 1) {
+                        // 如果只有一種尺寸
+                        commonSizeElement.textContent = mostCommon[0];
+                    } else {
+                        // 如果有多種尺寸但都只有一張
+                        commonSizeElement.textContent = `${sizes.length}種不同尺寸`;
+                    }
+                } else {
+                    document.getElementById('commonSize').textContent = '尚無圖片';
+                }
+                return data;
+            })
+            .catch(error => {
+                console.error('載入統計失敗:', error);
+                throw error;
+            });
+        }
+
+        // 載入圖片資料
+        function loadImages() {
+            return fetch('/api/images')
+            .then(response => response.json())
+            .then(data => {
+                allImages = data.images || [];
+                generateSizeFilters();
+                return data;
+            })
+            .catch(error => {
+                console.error('載入圖片失敗:', error);
+                throw error;
+            });
+        }
+
+        // 重新整理圖片庫
+        function refreshGallery() {
+            loadImages().then(() => {
+                displayGallery();
+            }).catch(error => {
+                console.error('重新整理圖片庫失敗:', error);
+            });
+        }
+
+        // 重新整理管理頁面
+        function refreshManage() {
+            loadImages().then(() => {
+                // 顯示管理網格
+                displayManage();
+                // 重新檢查重複項目
+                findDuplicates();
+            }).catch(error => {
+                console.error('重新整理管理頁面失敗:', error);
+            });
+        }
+
+        // 顯示圖片庫
+        function displayGallery() {
+            const grid = document.getElementById('galleryGrid');
+            const countSpan = document.getElementById('galleryCount');
+            
+            grid.innerHTML = '';
+            countSpan.textContent = allImages.length;
+
+            if (allImages.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-images fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">還沒有上傳任何圖片</h4>
+                        <p class="text-muted">切換到上傳標籤頁開始上傳圖片</p>
+                    </div>
+                `;
+                return;
+            }
+
+            allImages.forEach(img => {
+                const col = document.createElement('div');
+                col.className = 'col-md-4 col-lg-3 mb-4';
+                col.innerHTML = generateImageCard(img, false);
+                grid.appendChild(col);
+            });
+        }
+
+        // 顯示管理頁面
+        function displayManage() {
+            const grid = document.getElementById('manageGrid');
+            
+            grid.innerHTML = '';
+
+            const filteredImages = currentFilter === 'all' 
+                ? allImages 
+                : allImages.filter(img => `${img.image_info.width}x${img.image_info.height}` === currentFilter);
+
+            console.log(`顯示管理頁面: 篩選器="${currentFilter}", 總圖片=${allImages.length}, 篩選後=${filteredImages.length}`);
+
+            if (filteredImages.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-filter fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">沒有符合條件的圖片</h4>
+                        <p class="text-muted">
+                            ${currentFilter === 'all' ? '還沒有上傳任何圖片' : `沒有尺寸為 ${currentFilter} 的圖片`}
+                        </p>
+                        ${currentFilter !== 'all' ? '<button class="btn btn-outline-primary" onclick="filterBySize(\'all\')">顯示全部圖片</button>' : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            filteredImages.forEach(img => {
+                const col = document.createElement('div');
+                col.className = 'col-md-4 col-lg-3 mb-4';
+                col.innerHTML = generateImageCard(img, true);
+                grid.appendChild(col);
+            });
+        }
+
+        // 生成圖片卡片 HTML
+        function generateImageCard(img, showCheckbox) {
+            const isDuplicate = allImages.filter(i => 
+                `${i.image_info.width}x${i.image_info.height}` === `${img.image_info.width}x${img.image_info.height}`
+            ).length > 1;
+
+            return `
+                <div class="card image-card shadow-sm">
+                    ${isDuplicate ? '<span class="badge bg-warning conflict-indicator">重複尺寸</span>' : ''}
+                    <img src="/replace_image/${img.filename}" class="image-thumbnail" alt="${img.filename}">
+                    
+                    <div class="card-body">
+                        ${showCheckbox ? `
+                            <div class="form-check mb-2 ${bulkMode ? '' : 'd-none'}">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="select_${img.filename}" 
+                                       onchange="toggleSelection('${img.filename}')">
+                                <label class="form-check-label small" for="select_${img.filename}">選擇</label>
+                            </div>
+                        ` : ''}
+                        
+                        <h6 class="card-title text-truncate" title="${img.original_name || img.filename}">
+                            ${img.original_name || img.filename}
+                        </h6>
+                        
+                        ${img.original_name ? `
+                            <small class="text-muted d-block text-truncate" title="${img.filename}">
+                                儲存為: ${img.filename}
+                            </small>
+                        ` : ''}
+                        
+                        <div class="mb-2">
+                            <span class="badge bg-info info-badge me-1">${img.image_info.width}×${img.image_info.height}</span>
+                            <span class="badge bg-secondary info-badge me-1">${img.image_info.format}</span>
+                            <span class="badge bg-success info-badge">${formatFileSize(img.image_info.file_size)}</span>
+                        </div>
+                        
+                        <small class="text-muted d-block">
+                            <i class="fas fa-clock"></i> ${formatDateTime(img.upload_time)}
+                        </small>
+                        
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-primary me-1" 
+                                    onclick="showImageInfo('${img.filename}', ${JSON.stringify(img.image_info).replace(/"/g, '&quot;')}, '${img.original_name || ''}')">
+                                <i class="fas fa-info-circle"></i> 詳細
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="deleteImage('${img.filename}', '${img.original_name || img.filename}')">
+                                <i class="fas fa-trash"></i> 刪除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 生成尺寸篩選器
+        function generateSizeFilters() {
+            const sizeCount = {};
+            allImages.forEach(img => {
+                const size = `${img.image_info.width}x${img.image_info.height}`;
+                sizeCount[size] = (sizeCount[size] || 0) + 1;
+            });
+
+            const filtersContainer = document.getElementById('sizeFilters');
+            const totalSpan = document.getElementById('manageTotal');
+            
+            if (totalSpan) totalSpan.textContent = allImages.length;
+
+            // 清除現有篩選器（除了全部）
+            const existingFilters = filtersContainer.querySelectorAll('.size-filter:not([data-size="all"])');
+            existingFilters.forEach(filter => filter.remove());
+
+            // 添加尺寸篩選器
+            Object.entries(sizeCount)
+                .sort((a, b) => b[1] - a[1])
+                .forEach(([size, count]) => {
+                    const filter = document.createElement('span');
+                    filter.className = 'badge bg-secondary size-filter';
+                    filter.dataset.size = size;
+                    filter.innerHTML = `${size} (${count})`;
+                    filter.onclick = () => filterBySize(size);
+                    
+                    if (count > 1) {
+                        filter.classList.remove('bg-secondary');
+                        filter.classList.add('bg-warning', 'text-dark');
+                    }
+                    
+                    filtersContainer.appendChild(filter);
+                });
+        }
+
+        // 按尺寸篩選
+        function filterBySize(size) {
+            currentFilter = size;
+            
+            // 重置所有篩選器的樣式
+            document.querySelectorAll('.size-filter').forEach(filter => {
+                filter.classList.remove('active', 'bg-primary');
+                
+                // 根據篩選器類型設定預設樣式
+                if (filter.dataset.size === 'all') {
+                    filter.classList.add('bg-secondary');
+                } else if (filter.classList.contains('text-dark')) {
+                    // 保持重複項目的警告樣式
+                    filter.classList.add('bg-warning');
+                } else {
+                    filter.classList.add('bg-secondary');
+                }
+            });
+            
+            // 設定當前選中的篩選器樣式
+            const activeFilter = document.querySelector(`[data-size="${size}"]`);
+            if (activeFilter) {
+                activeFilter.classList.remove('bg-secondary', 'bg-warning');
+                activeFilter.classList.add('active', 'bg-primary');
+            }
+            
+            // 更新顯示
+            displayManage();
+        }
+
+        // 同步檔案系統和記錄
+        async function syncFiles() {
+            if (!confirm('確定要同步檔案系統和記錄嗎？這會將實際存在的檔案添加到管理系統中。')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/sync_files', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(`同步成功！${result.message}`, 'success');
+                    
+                    // 顯示詳細信息
+                    if (result.added.length > 0) {
+                        console.log('新增檔案:', result.added);
+                    }
+                    if (result.removed.length > 0) {
+                        console.log('移除記錄:', result.removed);
+                    }
+                    
+                    // 重新載入圖片列表
+                    await loadImages();
+                    await loadStats();
+                } else {
+                    showAlert(`同步失敗：${result.message}`, 'danger');
+                }
+            } catch (error) {
+                console.error('同步檔案失敗:', error);
+                showAlert('同步檔案時發生錯誤！', 'danger');
+            }
+        }
+
+        // 找出重複尺寸
+        function findDuplicates() {
+            const sizeGroups = {};
+            allImages.forEach(img => {
+                const size = `${img.image_info.width}x${img.image_info.height}`;
+                if (!sizeGroups[size]) sizeGroups[size] = [];
+                sizeGroups[size].push(img);
+            });
+
+            const duplicates = Object.entries(sizeGroups).filter(([size, images]) => images.length > 1);
+            
+            const alertDiv = document.getElementById('duplicateAlert');
+            const listDiv = document.getElementById('duplicateList');
+
+            if (duplicates.length > 0) {
+                alertDiv.classList.remove('d-none');
+                listDiv.innerHTML = duplicates.map(([size, images]) => 
+                    `<p><strong>${size}</strong>: ${images.length} 張圖片 
+                     <button class="btn btn-sm btn-outline-primary ms-2" onclick="filterBySize('${size}')">查看</button></p>`
+                ).join('');
+            } else {
+                alertDiv.classList.add('d-none');
+            }
+        }
+
+        // 切換批量模式
+        function toggleBulkMode() {
+            bulkMode = !bulkMode;
+            const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="select_"]');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.parentElement.classList.toggle('d-none', !bulkMode);
+            });
+            
+            if (!bulkMode) {
+                clearSelection();
+            }
+        }
+
+        // 切換選擇
+        function toggleSelection(filename) {
+            if (selectedImages.has(filename)) {
+                selectedImages.delete(filename);
+            } else {
+                selectedImages.add(filename);
+            }
+            updateBulkToolbar();
+        }
+
+        // 更新批量工具列
+        function updateBulkToolbar() {
+            const toolbar = document.getElementById('bulkToolbar');
+            const countSpan = document.getElementById('selectedCount');
+            
+            countSpan.textContent = selectedImages.size;
+            toolbar.classList.toggle('d-none', selectedImages.size === 0);
+        }
+
+        // 全選
+        function selectAll() {
+            document.querySelectorAll('input[type="checkbox"][id^="select_"]').forEach(checkbox => {
+                if (!checkbox.parentElement.classList.contains('d-none')) {
+                    checkbox.checked = true;
+                    const filename = checkbox.id.replace('select_', '');
+                    selectedImages.add(filename);
+                }
+            });
+            updateBulkToolbar();
+        }
+
+        // 清除選擇
+        function clearSelection() {
+            selectedImages.clear();
+            document.querySelectorAll('input[type="checkbox"][id^="select_"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateBulkToolbar();
+        }
+
+        // 刪除選中的圖片
+        async function deleteSelected() {
+            if (selectedImages.size === 0) return;
+            
+            if (!confirm(`確定要刪除選中的 ${selectedImages.size} 張圖片嗎？此操作無法復原！`)) {
+                return;
+            }
+
+            try {
+                const filenames = Array.from(selectedImages);
+                let successCount = 0;
+                let failCount = 0;
+                
+                // 序列化執行刪除操作，避免並發衝突
+                for (const filename of filenames) {
+                    try {
+                        const response = await fetch('/delete_image', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ filename })
+                        });
+                        
+                        if (response.ok) {
+                            successCount++;
+                        } else {
+                            failCount++;
+                        }
+                        
+                        // 短暫延遲避免過快的請求
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                    } catch (error) {
+                        failCount++;
+                        console.error(`刪除 ${filename} 失敗:`, error);
+                    }
+                }
+                
+                if (failCount === 0) {
+                    showAlert(`批量刪除完成！成功刪除 ${successCount} 張圖片`, 'success');
+                } else {
+                    showAlert(`批量刪除完成！成功 ${successCount} 張，失敗 ${failCount} 張`, 'warning');
+                }
+                
+                selectedImages.clear();
+                
+                // 重新載入資料並更新介面
+                await loadStats();
+                await loadImages();
+                refreshGallery();
+                refreshManage();
+            } catch (error) {
+                showAlert('批量刪除失敗：' + error.message, 'danger');
+            }
+        }
+
+        // 刪除單張圖片
+        async function deleteImage(filename, displayName) {
+            if (!confirm(`確定要刪除圖片「${displayName}」嗎？此操作無法復原！`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/delete_image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('圖片刪除成功！', 'success');
+                    
+                    // 重新載入資料並更新介面
+                    await loadStats();
+                    await loadImages();
+                    refreshGallery();
+                    refreshManage();
+                } else {
+                    showAlert('刪除失敗：' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('刪除失敗：' + error.message, 'danger');
+            }
+        }
+
+        // 顯示圖片詳細資訊
+        function showImageInfo(filename, imageInfo, originalName = '') {
+            const content = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <img src="/replace_image/${filename}" class="img-fluid rounded" alt="${filename}">
+                    </div>
+                    <div class="col-md-6">
+                        <h6>基本資訊</h6>
+                        <table class="table table-sm">
+                            ${originalName ? `<tr><td><strong>原始檔名:</strong></td><td>${originalName}</td></tr>` : ''}
+                            <tr><td><strong>儲存檔名:</strong></td><td>${filename}</td></tr>
+                            <tr><td><strong>尺寸:</strong></td><td>${imageInfo.width} × ${imageInfo.height} 像素</td></tr>
+                            <tr><td><strong>格式:</strong></td><td>${imageInfo.format}</td></tr>
+                            <tr><td><strong>色彩模式:</strong></td><td>${imageInfo.mode}</td></tr>
+                            <tr><td><strong>檔案大小:</strong></td><td>${formatFileSize(imageInfo.file_size)}</td></tr>
+                            <tr><td><strong>長寬比:</strong></td><td>${imageInfo.aspect_ratio}</td></tr>
+                        </table>
+                        
+                        <h6 class="mt-3">尺寸分類</h6>
+                        <p class="mb-1">
+                            <span class="badge bg-${getSizeCategory(imageInfo.width, imageInfo.height).color}">
+                                ${getSizeCategory(imageInfo.width, imageInfo.height).name}
+                            </span>
+                        </p>
+                        
+                        <h6 class="mt-3">長寬比分析</h6>
+                        <p class="mb-1">
+                            <span class="badge bg-${getAspectRatioCategory(imageInfo.aspect_ratio).color}">
+                                ${getAspectRatioCategory(imageInfo.aspect_ratio).name}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('imageInfoContent').innerHTML = content;
+            new bootstrap.Modal(document.getElementById('imageInfoModal')).show();
+        }
+
+        // 解決衝突
+        function resolveConflict(action, existingFilename, newFilename) {
+            fetch('/resolve_conflict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: action,
+                    existing_filename: existingFilename,
+                    new_filename: newFilename
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    // 重新載入統計和圖片資料
+                    Promise.all([loadStats(), loadImages()]).then(() => {
+                        // 如果當前在管理標籤頁，更新重複檢測
+                        const activeTab = document.querySelector('.nav-link.active');
+                        if (activeTab && activeTab.id === 'manage-tab') {
+                            findDuplicates();
+                        }
+                    });
+                    document.getElementById('uploadResult').innerHTML = '';
+                } else {
+                    showAlert('操作失敗：' + data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert('操作失敗：' + error.message, 'danger');
+            });
+        }
+
+        // 顯示警告訊息
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // 插入到當前活動的標籤頁
+            const activePane = document.querySelector('.tab-pane.active');
+            activePane.insertBefore(alertDiv, activePane.firstChild);
+            
+            // 3秒後自動消失
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 3000);
+        }
+
+        // 工具函數
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatDateTime(dateTimeStr) {
+            try {
+                const dt = new Date(dateTimeStr);
+                return dt.toLocaleString('zh-TW');
+            } catch {
+                return dateTimeStr;
+            }
+        }
+
+        function getSizeCategory(width, height) {
+            const totalPixels = width * height;
+            if (totalPixels < 100000) return {name: '小尺寸', color: 'secondary'};
+            if (totalPixels < 500000) return {name: '中等尺寸', color: 'primary'};
+            if (totalPixels < 2000000) return {name: '大尺寸', color: 'warning'};
+            return {name: '超大尺寸', color: 'danger'};
+        }
+
+        function getAspectRatioCategory(ratio) {
+            if (Math.abs(ratio - 1) < 0.1) return {name: '正方形', color: 'success'};
+            if (ratio > 1.5) return {name: '橫向', color: 'info'};
+            if (ratio < 0.7) return {name: '直向', color: 'warning'};
+            return {name: '接近正方形', color: 'primary'};
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 虛擬環境
+image_upload_env/
+venv/
+env/
+ENV/
+
+# 使用者產生的檔案
+ad_replacer_config.json
+config.py
+screenshots/
+replace_image/
+logs/
+
+# 臨時檔案
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# 系統檔案
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 瀏覽器相關
+chromedriver.exe
+geckodriver.exe
+*.log
+
+# 測試檔案
+test_*.py
+*_test.py
