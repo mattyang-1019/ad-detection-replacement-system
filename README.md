@@ -7,8 +7,8 @@
 ### 📥 下載與安裝
 ```bash
 # 1. 下載專案
-git clone https://github.com/你的用戶名/你的專案名.git
-cd 你的專案名
+git clone https://github.com/mattyang-1019/ad-detection-replacement-system.git
+cd ad-detection-replacement-system
 
 # 2. 安裝 Python 依賴
 pip install -r requirements.txt
