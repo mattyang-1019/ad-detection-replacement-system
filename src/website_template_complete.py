@@ -43,7 +43,7 @@ except ImportError:
     MAX_ATTEMPTS = 50
     PAGE_LOAD_TIMEOUT = 15
     WAIT_TIME = 3
-    REPLACE_IMAGE_FOLDER = "replace_image"
+    REPLACE_IMAGE_FOLDER = "data/replace_image"
     DEFAULT_IMAGE = "mini.jpg"
     MINI_IMAGE = "mini.jpg"
     BASE_URL = "https://example.com"
@@ -58,7 +58,7 @@ except ImportError:
     INFO_BUTTON_OFFSET = 16
     FULLSCREEN_MODE = True
     DEBUG_MODE = True
-    SCREENSHOT_FOLDER = "screenshots"
+    SCREENSHOT_FOLDER = "data/screenshots"
 
 class ScreenManager:
     """螢幕管理器，用於偵測和管理多螢幕"""

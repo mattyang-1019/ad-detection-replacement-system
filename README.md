@@ -115,23 +115,23 @@ python image_manager_app.py
 ### 🎯 初次使用流程
 ```bash
 # 步驟 1：上傳廣告替換圖片
-python image_manager_app.py
+python src/image_manager_app.py
 # 然後訪問 http://localhost:5001 上傳圖片
 
 # 步驟 2：設定參數並執行廣告替換
-python config_manager.py
+python src/config_manager.py
 # 設定目標網址等參數，然後執行替換
 ```
 
 ### 🔄 後續使用
 ```bash
 # 如果已有圖片和設定，直接執行
-python config_manager.py
+python src/config_manager.py
 ```
 
 ### 🔍 啟用調試模式（推薦）
 ```bash
-python config_manager.py
+python src/config_manager.py
 # 選擇「修改設定」→ 在最後選擇「偵測調試模式」→ 輸入 y
 ```
 **調試模式優點：**
@@ -144,7 +144,7 @@ python config_manager.py
 
 ### image_manager_app.py
 ```bash
-python image_manager_app.py [選項]
+python src/image_manager_app.py [選項]
   --port PORT     埠號 (預設: 5001)
   --host HOST     主機位址 (預設: 0.0.0.0)
   --debug         調試模式
@@ -152,7 +152,7 @@ python image_manager_app.py [選項]
 
 ### ad_replacer_runner.py  
 ```bash
-python ad_replacer_runner.py --url URL [選項]
+python src/ad_replacer_runner.py --url URL [選項]
   --url URL           目標網址 (必填)
   --screenshots NUM   截圖數量 (預設: 10)
   --articles NUM      掃描文章數 (預設: 20)
@@ -162,21 +162,36 @@ python ad_replacer_runner.py --url URL [選項]
 ## 📁 檔案結構
 
 ```
-├── image_manager_app.py            # 🅰️ 圖片管理系統
-├── config_manager.py               # 🅱️ 設定管理器 ⭐
-├── ad_replacer_runner.py           # 🅲️ 廣告替換執行器
-├── website_template_complete.py    # 廣告替換核心邏輯
-├── default_config.py               # 預設內部設定檔 (模板)
-├── clean_for_release.py            # 🧹 發布前清理工具
-├── setup_and_run.bat               # 🚀 Windows 快速啟動腳本
-├── requirements.txt                # Python 套件清單
-├── templates/single_page_app.html  # 圖片管理 Web 介面
-├── replace_image/                  # 替換圖片儲存
-├── screenshots/                    # 截圖結果儲存
-├── logs/                          # 系統日誌
-└── 自動生成檔案/
-    ├── ad_replacer_config.json     # 使用者設定檔
-    └── config.py                   # 系統內部設定檔
+📁 ad-detection-replacement-system/
+├── 📄 README.md                    # 主要說明文件
+├── 📄 LICENSE                      # 授權條款
+├── 📄 requirements.txt             # Python 依賴
+├── 📄 setup_and_run.bat           # 快速啟動腳本
+│
+├── 📁 src/                         # 核心程式碼
+│   ├── 📄 config_manager.py       # 🅱️ 設定管理器 ⭐
+│   ├── 📄 image_manager_app.py    # 🅰️ 圖片管理系統
+│   ├── 📄 ad_replacer_runner.py   # 🅲️ 廣告替換執行器
+│   └── 📄 website_template_complete.py  # 廣告替換核心邏輯
+│
+├── 📁 config/                      # 設定檔案
+│   └── 📄 default_config.py       # 預設設定模板
+│
+├── 📁 templates/                   # 網頁模板
+│   └── 📄 single_page_app.html    # 圖片管理介面
+│
+├── 📁 docs/                        # 文件資料夾
+│   └── 📄 使用者自訂範例.md       # 自訂指南
+│
+├── 📁 data/                        # 資料資料夾
+│   ├── 📁 replace_image/           # 替換圖片儲存
+│   ├── 📁 screenshots/             # 截圖結果儲存
+│   └── 📁 logs/                    # 系統日誌
+│
+
+└── 📁 自動生成檔案/
+    ├── 📄 ad_replacer_config.json  # 使用者設定檔
+    └── 📄 config.py                # 系統內部設定檔
 ```
 
 ## ⚙️ 設定檔說明
@@ -206,16 +221,16 @@ python ad_replacer_runner.py --url URL [選項]
 
 ```bash
 # 處理 20 張截圖，掃描 50 篇文章
-python ad_replacer_runner.py --url https://example.com --screenshots 20 --articles 50
+python src/ad_replacer_runner.py --url https://example.com --screenshots 20 --articles 50
 
 # 使用第 2 個螢幕
-python ad_replacer_runner.py --url https://example.com --screen 2
+python src/ad_replacer_runner.py --url https://example.com --screen 2
 
 # 圖片管理系統使用自訂埠號
-python image_manager_app.py --port 8080
+python src/image_manager_app.py --port 8080
 
 # 啟用調試模式
-python image_manager_app.py --debug
+python src/image_manager_app.py --debug
 ```
 
 ## 🔧 系統需求
@@ -270,21 +285,6 @@ pip install selenium beautifulsoup4 requests webdriver-manager
 - 測試廣告與網站內容的協調性
 - 收集設計反饋和改進建議
 
-## 🧹 發布前清理
-
-### 清理測試檔案
-```bash
-# 清理所有測試產生的檔案，恢復到原始狀態
-python clean_for_release.py
-```
-
-此工具會清理：
-- 🗑️ 設定檔 (`ad_replacer_config.json`, `config.py`)
-- 🗑️ 截圖檔案 (`screenshots/` 資料夾)
-- 🗑️ 上傳的圖片 (`replace_image/` 資料夾)
-- 🗑️ 日誌檔案 (`logs/` 資料夾)
-- 🗑️ Python 快取 (`__pycache__/`)
-- 🗑️ 臨時檔案 (`.tmp`, `.temp`, `.bak`)
 
 ## 🛠️ 故障排除
 
@@ -293,7 +293,7 @@ python clean_for_release.py
 #### 🔍 **程式找不到文章連結或廣告時**
 **第一步：啟用調試模式**
 ```bash
-python config_manager.py
+python src/config_manager.py
 # 選擇「修改設定」→「偵測調試模式」→ 輸入 y
 ```
 
@@ -311,8 +311,8 @@ python config_manager.py
 
 ### 檢查系統狀態
 - 訪問 `http://localhost:5001/api/system-status` 查看系統狀態
-- 查看 `logs/` 資料夾中的詳細日誌
-- 檢查 `replace_image/` 和 `screenshots/` 資料夾權限
+- 查看 `data/logs/` 資料夾中的詳細日誌
+- 檢查 `data/replace_image/` 和 `data/screenshots/` 資料夾權限
 
 ### 效能優化
 - 關閉不必要的瀏覽器擴充功能可提高執行速度
@@ -348,7 +348,7 @@ python config_manager.py
 
 #### 2. 📝 **修改程式碼中的選擇器**
 
-**檔案位置：** `website_template_complete.py`
+**檔案位置：** `src/website_template_complete.py`
 
 **A. 修改廣告容器選擇器 (第 460 行附近)**
 ```javascript
@@ -409,7 +409,7 @@ var fullscreenAdSelectors = [
 
 #### 3. 🎯 **調整廣告尺寸設定**
 
-**檔案位置：** `default_config.py` (第 23 行附近)
+**檔案位置：** `config/default_config.py` (第 23 行附近)
 
 ```python
 # 🔧 修改這個列表以包含您網站的廣告尺寸
@@ -434,7 +434,7 @@ TARGET_AD_SIZES = [
 
 1. **透過設定管理器啟用：**
    ```bash
-   python config_manager.py
+   python src/config_manager.py
    # 選擇「修改設定」→ 在最後會看到「偵測調試模式」選項
    # 輸入 y 啟用調試模式
    ```
@@ -522,7 +522,7 @@ document.querySelectorAll('.sidebar .advertisement')
 **B. 處理動態載入的廣告：**
 如果廣告是動態載入的，可能需要增加等待時間：
 ```python
-# 在 website_template_complete.py 中找到並修改等待時間
+# 在 src/website_template_complete.py 中找到並修改等待時間
 time.sleep(5)  # 增加等待時間
 ```
 
@@ -542,7 +542,7 @@ ads = ads.concat(Array.from(document.querySelectorAll('iframe[src*="ads"]')));
 1. **啟用調試模式** 查看程式偵測到的元素
 2. **檢查瀏覽器控制台** 是否有 JavaScript 錯誤
 3. **逐步測試** 先測試簡單的選擇器，再逐漸複雜化
-4. **備份原始檔案** 在修改前先備份 `website_template_complete.py`
+4. **備份原始檔案** 在修改前先備份 `src/website_template_complete.py`
 
 ## 🔒 注意事項
 

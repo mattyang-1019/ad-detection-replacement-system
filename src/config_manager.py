@@ -187,7 +187,7 @@ def interactive_config():
 
 def build_command(config):
     """根據設定建立執行命令"""
-    cmd = ['python', 'ad_replacer_runner.py']
+    cmd = ['python', 'src/ad_replacer_runner.py']
     
     # 必要參數
     cmd.extend(['--url', config['url']])

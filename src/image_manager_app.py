@@ -17,7 +17,7 @@ app = Flask(__name__)
 app.secret_key = 'image-manager-secret-key'
 
 # 設定
-REPLACE_IMAGE_FOLDER = 'replace_image'
+REPLACE_IMAGE_FOLDER = 'data/replace_image'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10MB
 
@@ -25,14 +25,14 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
 # 建立必要的資料夾
 os.makedirs(REPLACE_IMAGE_FOLDER, exist_ok=True)
-os.makedirs('logs', exist_ok=True)
+os.makedirs('data/logs', exist_ok=True)
 
 # 日誌設定
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('logs/image_manager.log'),
+        logging.FileHandler('data/logs/image_manager.log'),
         logging.StreamHandler()
     ]
 )
@@ -466,7 +466,7 @@ if __name__ == '__main__':
     print(f"   • http://localhost:{args.port}")
     print(f"   • http://127.0.0.1:{args.port}")
     print(f"📁 圖片儲存位置: {os.path.abspath(REPLACE_IMAGE_FOLDER)}")
-    print(f"📋 日誌儲存位置: {os.path.abspath('logs')}")
+    print(f"📋 日誌儲存位置: {os.path.abspath('data/logs')}")
     print(f"🛑 按 Ctrl+C 停止伺服器")
     print("=" * 60)
     print("📋 功能說明：")

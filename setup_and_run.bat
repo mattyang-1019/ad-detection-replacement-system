@@ -40,9 +40,9 @@ echo 🚀 啟動圖片上傳系統...
 echo.
 echo 💡 提示：Flask 開發模式會自動重啟一次（這是正常現象）
 echo 📱 伺服器將在 http://localhost:5001 啟動
-echo 📁 圖片將儲存在 replace_image 資料夾
+echo 📁 圖片將儲存在 data/replace_image 資料夾
 echo 🛑 按 Ctrl+C 停止伺服器
 echo.
-python image_manager_app.py
+python src/image_manager_app.py
 
 pause

@@ -37,7 +37,7 @@ SCREENSHOT_COUNT = {screenshot_count}
 MAX_ATTEMPTS = {max_attempts}
 PAGE_LOAD_TIMEOUT = {page_timeout}
 WAIT_TIME = {wait_time}
-REPLACE_IMAGE_FOLDER = "replace_image"
+REPLACE_IMAGE_FOLDER = "data/replace_image"
 DEFAULT_IMAGE = "mini.jpg"
 MINI_IMAGE = "mini.jpg"
 BASE_URL = "{target_url}"
@@ -62,19 +62,19 @@ TARGET_AD_SIZES = [
 ]
 
 IMAGE_USAGE_COUNT = {{
-    "replace_image/img_120x600.jpg": 5,
-    "replace_image/img_160x600.jpg": 5,
-    "replace_image/img_240x400.jpg": 5,
-    "replace_image/img_250x250.jpg": 5,
-    "replace_image/img_300x50.jpg": 5,
-    "replace_image/img_300x250.jpg": 5,
-    "replace_image/img_300x600.jpg": 5,
-    "replace_image/img_320x50.jpg": 5,
-    "replace_image/img_320x100.jpg": 5,
-    "replace_image/img_336x280.jpg": 5,
-    "replace_image/img_728x90.jpg": 5,
-    "replace_image/img_970x90.jpg": 5,
-    "replace_image/img_980x120.jpg": 5
+    "data/replace_image/img_120x600.jpg": 5,
+    "data/replace_image/img_160x600.jpg": 5,
+    "data/replace_image/img_240x400.jpg": 5,
+    "data/replace_image/img_250x250.jpg": 5,
+    "data/replace_image/img_300x50.jpg": 5,
+    "data/replace_image/img_300x250.jpg": 5,
+    "data/replace_image/img_300x600.jpg": 5,
+    "data/replace_image/img_320x50.jpg": 5,
+    "data/replace_image/img_320x100.jpg": 5,
+    "data/replace_image/img_336x280.jpg": 5,
+    "data/replace_image/img_728x90.jpg": 5,
+    "data/replace_image/img_970x90.jpg": 5,
+    "data/replace_image/img_980x120.jpg": 5
 }}
 
 MAX_CONSECUTIVE_FAILURES = {max_failures}
@@ -84,7 +84,7 @@ INFO_BUTTON_COLOR = "#00aecd"
 INFO_BUTTON_OFFSET = 16
 FULLSCREEN_MODE = {fullscreen}
 DEBUG_MODE = {debug_mode}
-SCREENSHOT_FOLDER = "screenshots"
+SCREENSHOT_FOLDER = "data/screenshots"
 BUTTON_STYLE = "{button_style}"
 '''
     
@@ -103,7 +103,7 @@ def check_requirements():
     print("🔍 檢查系統需求...")
     
     # 檢查必要資料夾
-    required_folders = ['replace_image', 'screenshots']
+    required_folders = ['data/replace_image', 'data/screenshots']
     for folder in required_folders:
         if not os.path.exists(folder):
             os.makedirs(folder, exist_ok=True)
@@ -112,7 +112,7 @@ def check_requirements():
             print(f"✅ 資料夾存在: {folder}")
     
     # 檢查替換圖片
-    replace_image_folder = 'replace_image'
+    replace_image_folder = 'data/replace_image'
     image_files = []
     if os.path.exists(replace_image_folder):
         for filename in os.listdir(replace_image_folder):
@@ -130,8 +130,8 @@ def check_requirements():
         return False
     
     # 檢查 website_template_complete.py
-    if not os.path.exists('website_template_complete.py'):
-        print("❌ 錯誤：找不到 website_template_complete.py")
+    if not os.path.exists('src/website_template_complete.py'):
+        print("❌ 錯誤：找不到 src/website_template_complete.py")
         return False
     else:
         print("✅ 廣告替換核心模組存在")
@@ -263,6 +263,8 @@ def main():
     
     try:
         # 導入並執行廣告替換系統
+        import sys
+        sys.path.append('src')
         from website_template_complete import main as run_ad_replacement
         
         # 執行廣告替換
@@ -272,7 +274,7 @@ def main():
         print("✅ 廣告替換執行完成！")
         
         # 顯示結果
-        screenshots_folder = 'screenshots'
+        screenshots_folder = 'data/screenshots'
         if os.path.exists(screenshots_folder):
             screenshot_files = [f for f in os.listdir(screenshots_folder) 
                               if f.endswith(('.png', '.jpg', '.jpeg'))]
