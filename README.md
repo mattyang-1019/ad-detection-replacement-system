@@ -183,15 +183,14 @@ python src/ad_replacer_runner.py --url URL [選項]
 ├── 📁 docs/                        # 文件資料夾
 │   └── 📄 使用者自訂範例.md       # 自訂指南
 │
-├── 📁 data/                        # 資料資料夾
-│   ├── 📁 replace_image/           # 替換圖片儲存
-│   ├── 📁 screenshots/             # 截圖結果儲存
-│   └── 📁 logs/                    # 系統日誌
-│
+└── 📁 data/                        # 資料資料夾
+    ├── 📁 replace_image/           # 替換圖片儲存
+    ├── 📁 screenshots/             # 截圖結果儲存
+    └── 📁 logs/                    # 系統日誌
 
-└── 📁 自動生成檔案/
-    ├── 📄 ad_replacer_config.json  # 使用者設定檔
-    └── 📄 config.py                # 系統內部設定檔
+# 執行時自動生成的檔案（位於專案根目錄）：
+# � ad_replacer_config.json      # 使用者設定檔
+# 📄 config.py                    # 系統內部設定檔
 ```
 
 ## ⚙️ 設定檔說明
