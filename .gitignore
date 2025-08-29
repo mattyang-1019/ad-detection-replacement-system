@@ -1,3 +1,6 @@
+# 開發者工具（不需要分發給使用者）
+clean_for_release.py
+
 # 測試和個人設定檔案
 ad_replacer_config.json
 config.py
